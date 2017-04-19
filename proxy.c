@@ -123,7 +123,13 @@ void sendToBrowser(int socket, char *buffer, int sock_client, int n){
   }
 }
 
-int AddrBlock(char *addr, FILE* file){
+int AddrBlock(char *addr){
+  FILE* file = NULL;
+
+  file = fopen("easyList.txt", "r");
+  if(file==NULL){
+    ThrowError("Error : Can't open rules file");
+  }
   /*printf("\n la fonction est appelée\n");
   printf("\n");
   printf("\n l'adresse est : %s\n",addr);
@@ -144,18 +150,26 @@ int AddrBlock(char *addr, FILE* file){
 
 }
 
-int HostBlock(char* host, FILE* file){
-  //printf("l'hote est :%s\n",host);
+
+int HostBlock(char* host){
+  FILE* file = NULL;
+
+  file = fopen("easyList.txt", "r");
+  if(file==NULL){
+    ThrowError("Error : Can't open rules file");
+  }
+  printf("l'hote est :%s\n",host);
   char line[200]="";
   char *buff=NULL;
   while(fgets(line,200,file)!=NULL){// parcours de toutes les lignes du fichier
-    printf("1\n");
+    printf("\n 1 \n");
     if (line[0]=='|' && line[1]=='|'){
+
       buff=strtok((char*)line, "||");
       buff=strtok(NULL,"\n");
-      //printf("1");
-      printf("buffer : %s\n",buff);
-      //printf("2");
+      printf("\n2\n");
+      printf("\nbuffer : %s\n",buff);
+      printf("\n3\n");
 
       if (strstr(host,buff)!=NULL){
         return(1);
@@ -318,7 +332,7 @@ int main(int argc, char *argv[]){
           //strcat(client_buffer, "Connection: close");  // prepare our buffer to be send
           //printf("%s\n",client_buffer );
           //printf("url : %s",url);
-          if(AddrBlock(url,file)==0 && HostBlock(host,file)==0){
+          if(AddrBlock(url)==0 && HostBlock(host)==0){
             sendToBrowser(sockfd,client_buffer,sockClient,n);
           }else{
             printf("\n\n----------------------------------------------------------------------------------\n\n");
