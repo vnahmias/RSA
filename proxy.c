@@ -123,12 +123,19 @@ void sendToBrowser(int socket, char *buffer, int sock_client, int n){
   }
 }
 
-int AddrBlock(char* addr, FILE* file){
+int AddrBlock(char *addr, FILE* file){
+  printf("\n la fonction est appelée\n");
+  printf("\n");
+  printf("\n l'adresse est : %s\n",addr);
+  printf("\n");
 	//fonction qui assure le blocage par adresse
 	char line[200]="";
 	while(fgets(line,200,file)!=NULL){ // parcours de toutes les lignes du fichier
 		if(line[0]!='#' && line[0]!='|' && line[0]!='@'){ //Si c'est une règle qui concerne les url
+      
 			if(strstr(addr,line)!=NULL){ //Si l'adresse contiens l'élément présent sur la ligne
+        printf("\nligne qu'on test : %s",line);
+        printf("\n on est sensé avoir blocage");
 				return(1);
 			}
 		}
@@ -282,20 +289,17 @@ int main(int argc, char *argv[]){
         strcpy(pute,client_buffer);
 
         host=strtok(pute,"User-Agent: ");
-        printf("host 1: %s\n", host);
         host= strtok(NULL,"\n");
-        printf("host 2: %s\n", host);
         host= strtok(NULL,"\n");
-        printf("host 3: %s\n", host);
         host= strtok(host," :");
-        printf("host 4: %s\n", host);
         host = strtok(NULL," :");
-        printf("host 5: %s\n", host);
-        printf("host : %s\n", host);
         //strcat(client_buffer, "Connection: close");  // prepare our buffer to be send
-        printf("%s\n",client_buffer );
+        //printf("%s\n",client_buffer );
+        printf("url : %s",url);
         if(AddrBlock(url,file)==0){
         	sendToBrowser(sockfd, client_buffer, sockClient, n); // function that send the buffer to the browser
+        }else{
+          printf("\n\n\n --------------------BLOCAGE----------------------\n\n\n");
         }
         
 
