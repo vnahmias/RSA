@@ -124,10 +124,10 @@ void sendToBrowser(int socket, char *buffer, int sock_client, int n){
 }
 
 int AddrBlock(char *addr, FILE* file){
-  printf("\n la fonction est appelée\n");
+  /*printf("\n la fonction est appelée\n");
   printf("\n");
   printf("\n l'adresse est : %s\n",addr);
-  printf("\n");
+  printf("\n");*/
 	//fonction qui assure le blocage par adresse
 	char line[200]="";
 	while(fgets(line,200,file)!=NULL){ // parcours de toutes les lignes du fichier
@@ -142,6 +142,27 @@ int AddrBlock(char *addr, FILE* file){
 	}
 	return(0);
 
+}
+
+int HostBlock(char* host, FILE* file){
+  printf("l'hote est :%s\n",host);
+  char line[200]="";
+  char *buff=NULL;
+  while(fgets(line,200,file)!=NULL){// parcours de toutes les lignes du fichier
+    if (line[0]=='|' && line[1]=='|'){
+      buff=strtok((char*)line, "||");
+      buff=strtok(NULL,"\n");
+      printf("1");
+      printf("buffer : %s\n",buff);
+      printf("2");
+
+      if (strstr(host,buff)!=NULL){
+        return(1);
+      }
+    }
+  }
+  return(0); 
+    
 }
 
 int main(int argc, char *argv[]){
@@ -273,38 +294,37 @@ int main(int argc, char *argv[]){
           ThrowError("Error : Can't connect client socket to server socket\n");
         }
 
-      if((tmp!=NULL) || (port ==80)){  //If we are in HTTP
+        if((tmp!=NULL) || (port ==80)){  //If we are in HTTP
 
-        if(path==NULL){  // If the path is null the buffer still anyway want to have a '/'
-          path="/";
-      }
-      	//printf("path : %s\n",path);
-      	//printf("url : %s\n",url);
+          if(path==NULL){  // If the path is null the buffer still anyway want to have a '/'
+            path="/";
+          }
+        	//printf("path : %s\n",path);
+        	//printf("url : %s\n",url);
 
-        tmp_buffer = strChange(send_buffer,url, path); // replace the url send by the path
+          tmp_buffer = strChange(send_buffer,url, path); // replace the url send by the path
 
-        client_buffer = strChange(tmp_buffer, "keep-alive", "close"); // replace keep alive by close
-        int buff_len = strlen(client_buffer);
-        pute = (char*)malloc(buff_len * sizeof(char));
-        strcpy(pute,client_buffer);
+          client_buffer = strChange(tmp_buffer, "keep-alive", "close"); // replace keep alive by close
+          int buff_len = strlen(client_buffer);
+          pute = (char*)malloc(buff_len * sizeof(char));
+          strcpy(pute,client_buffer);
 
-        host=strtok(pute,"User-Agent: ");
-        host= strtok(NULL,"\n");
-        host= strtok(NULL,"\n");
-        host= strtok(host," :");
-        host = strtok(NULL," :");
-        //strcat(client_buffer, "Connection: close");  // prepare our buffer to be send
-        //printf("%s\n",client_buffer );
-        printf("url : %s",url);
-        if(AddrBlock(url,file)==0){
-        	sendToBrowser(sockfd, client_buffer, sockClient, n); // function that send the buffer to the browser
-        }else{
-          printf("\n\n\n --------------------BLOCAGE----------------------\n\n\n");
+          host=strtok(pute,"User-Agent: ");
+          host= strtok(NULL,"\n");
+          host= strtok(NULL,"\n");
+          host= strtok(host," :");
+          host = strtok(NULL," :");
+          //strcat(client_buffer, "Connection: close");  // prepare our buffer to be send
+          //printf("%s\n",client_buffer );
+          //printf("url : %s",url);
+          if(AddrBlock(url,file)==0 && HostBlock(host,file)==0){
+            sendToBrowser(sockfd,client_buffer,sockClient,n);
+          }else{
+            printf("\n\n----------------------------------------------------------------------------------\n\n");
+          }
+
+          
         }
-        
-
-        
-      }
 	    }
 	    close(sockClient);
 	    close(sockfd);  //close our sockets
