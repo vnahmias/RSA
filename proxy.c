@@ -158,20 +158,20 @@ int HostBlock(char* host){
   if(file==NULL){
     ThrowError("Error : Can't open rules file");
   }
-  printf("l'hote est :%s\n",host);
+  //printf("l'hote est :%s\n",host);
   char line[200]="";
   char *buff=NULL;
   while(fgets(line,200,file)!=NULL){// parcours de toutes les lignes du fichier
-    printf("\n 1 \n");
     if (line[0]=='|' && line[1]=='|'){
 
-      buff=strtok((char*)line, "||");
-      buff=strtok(NULL,"\n");
-      printf("\n2\n");
-      printf("\nbuffer : %s\n",buff);
-      printf("\n3\n");
+      buff=strtok(line, "||");
+      buff=strtok(buff,"^");
+      //printf("\n2\n");
+      //printf("\n3\n");
 
       if (strstr(host,buff)!=NULL){
+        printf("\nbuffer : %s\n",buff);
+
         return(1);
       }
     }
