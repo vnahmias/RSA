@@ -140,7 +140,7 @@ int AddrBlock(char* addr, FILE* file){
 int main(int argc, char *argv[]){
   FILE* file = NULL;
 
-  file = fopen("Listes/easyList.txt", "r");
+  file = fopen("easyList.txt", "r");
   if(file==NULL){
   	ThrowError("Error : Can't open rules file");
   }
