@@ -145,16 +145,17 @@ int AddrBlock(char *addr, FILE* file){
 }
 
 int HostBlock(char* host, FILE* file){
-  printf("l'hote est :%s\n",host);
+  //printf("l'hote est :%s\n",host);
   char line[200]="";
   char *buff=NULL;
   while(fgets(line,200,file)!=NULL){// parcours de toutes les lignes du fichier
+    printf("1\n");
     if (line[0]=='|' && line[1]=='|'){
       buff=strtok((char*)line, "||");
       buff=strtok(NULL,"\n");
-      printf("1");
+      //printf("1");
       printf("buffer : %s\n",buff);
-      printf("2");
+      //printf("2");
 
       if (strstr(host,buff)!=NULL){
         return(1);
