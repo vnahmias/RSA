@@ -1,10 +1,3 @@
-/*
- * proxyHTTP.c
- *
- *  Created on: 9 avr. 2016
- *      Author: Denzel And Gauthey
- */
-
 #include <errno.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -20,19 +13,19 @@
 #include <regex.h>
 
 
-#define PACKAGE_LENGTH 4096 // be careful, if you increase the buffer's size, you won't receive packets from the browser
+#define PACKAGE_LENGTH 4096 // Attention si vous augmentez l taille du uffer vous ne recevrez pas les paquest du navigateur
 #define HTTP_PORT 80
 #define HTTPS_PORT 443
 
 
-char *strChange(char *orig, char *rep, char *with) { // function to replace a char * to an other in the buffer (Source : http://stackoverflow.com/questions/779875/what-is-the-function-to-replace-string-in-c)
-    char *result; // the return string
-    char *ins;    // the next insert point
-    char *tmp;    // varies
-    int len_rep;  // length of rep
-    int len_with; // length of with
-    int len_front; // distance between rep and end of last rep
-    int count;    // number of replacements
+char *strChange(char *orig, char *rep, char *with) { //fonction qui remplace une chaine de caractère par une autres dans un char*
+    char *result; 
+    char *ins;    
+    char *tmp;    
+    int len_rep;  
+    int len_with; 
+    int len_front; 
+    int count;
 
     if (!orig)
       return NULL;
@@ -58,7 +51,7 @@ char *strChange(char *orig, char *rep, char *with) { // function to replace a ch
       len_front = ins - orig;
       tmp = strncpy(tmp, orig, len_front) + len_front;
       tmp = strcpy(tmp, with) + len_with;
-        orig += len_front + len_rep; // move to next "end of rep"
+        orig += len_front + len_rep;
       }
       strcpy(tmp, orig);
       return result;
@@ -70,7 +63,7 @@ void ThrowError(char *err){
 }
 
 
-int init(int sock, struct sockaddr_in addr_server, int port){ // function to "prepare" the sockProxy 
+int init(int sock, struct sockaddr_in addr_server, int port){ // Initialisation du proxy socket
   printf("\n\n- - - - - - - - - - - - - - - - - - - - - - -");
   printf("\n- - - - - - - - Proxy MyAdBlock - - - - - - - -");
   printf("\n- - - - - - - - - - - BY - - - - - - - - - - - ");
@@ -80,139 +73,53 @@ int init(int sock, struct sockaddr_in addr_server, int port){ // function to "pr
   printf("\n- - - - - Because F*** ADVERTISING - - - - - - -");
   printf("\n- - - - - - - - - - - - - - - - - - - - - - - -\n\n");
 
-  addr_server.sin_family = AF_INET; // AF_INET: IP domain
-  addr_server.sin_addr.s_addr = INADDR_ANY; //  INADDR_ANY: our proxy accept to deal with any address
-  addr_server.sin_port = htons(port); // link addr_server port to the port decided at the exec of the proxy
+  addr_server.sin_family = AF_INET; // AF_INET: domaine IP
+  addr_server.sin_addr.s_addr = INADDR_ANY; //  INADDR_ANY: notre proxy traite toutes les adresses
+  addr_server.sin_port = htons(port);
   
-  //we set our socket
-  if ((sock = socket(AF_INET, SOCK_STREAM, 0)) <0) {  // create the socket
+
+  if ((sock = socket(AF_INET, SOCK_STREAM, 0)) <0) {  //création de la socket
     ThrowError("Error : Can't create the proxy socket\n");
   }
 
 
-  // we link this socket to addresses defined
-  if (bind(sock, (struct sockaddr *) &addr_server, sizeof(addr_server)) < 0) {  // function bind
+  //lien entre le socket et l'adresse
+  if (bind(sock, (struct sockaddr *) &addr_server, sizeof(addr_server)) < 0) {
     ThrowError("Error : Can't bind proxy socket to server adress\n");
   }
 
-  // we set options of this proxy socket
-  if(listen(sock,SOMAXCONN) <0){  // function listen
+  // réglage des options du proxy socket
+  if(listen(sock,SOMAXCONN) <0){
     ThrowError("Error : Can't listen on proxy socket\n");
   }
   return sock;
 }
 
+// vérification du nombre d'arguments
 void checkArg (int nb){
 	if(nb!=2){
 		ThrowError("Error : Wrong number of arguments. The program only expects port number as argument\n");
 	}
 }
 
-// char *parseLineAddr(char *line, int mode){
-// 	//fonction pour remplaçer le caractère ^ par les deux types de séparateurs dans les adresses
-// 	char line2[strlen(line)];
-// 	if(strstr(line,"^")!=NULL && mode==1){
-// 		printf("je passe la");
-// 		int i=0;
-// 		for(i=0;i<strlen(line);i++){
-// 			if(line[i]=='^'){
-// 				line2[i]='?';
-// 			}else{
-// 				line2[i]=line[i];
-// 			}
-// 		}
-// 	}
-// 	if(strstr(line,"^")!=NULL && mode==2){
-// 		printf("je passe ici");
-// 		int i=0;
-// 		for(i=0;i<strlen(line);i++){
-// 			if(line[i]=='^'){
-// 				line2[i]='/';
-// 			}else{
-// 				line2[i]=line[i];
-// 			}
-// 		}
-// 	}
-// 	if(line2!=NULL){
-// 		printf("line l : %s\n",line2);
-// 		return &line2;
-// 	}else{
-// 		printf("line l : %s\n",line);
-// 		return &line;
-// 	}
-	
-// }
 
 void sendToBrowser(int socket, char *buffer, int sock_client, int n){
 
-  n=send(socket,buffer,strlen(buffer),0);  //send buffer to server
+  n=send(socket,buffer,strlen(buffer),0);  //envoie du buffer au serveur.
   if(n<0){
     ThrowError("Error : can't send buffer to server\n");
   }else{
     do
     {
       bzero((char*)buffer,sizeof(buffer));
-      n=recv(socket,buffer,sizeof(buffer),0); //rcv the buffer from server
+      n=recv(socket,buffer,sizeof(buffer),0); //réception du buffer depuis le serveur
       if(!(n<=0))
-      send(sock_client,buffer,n,0);  //send buffer to the browser
+      send(sock_client,buffer,n,0);  //envoi du buffer au navigateur
      }while(n>0);
   }
 }
-int AddrBlock2(char *addr){
-  FILE* file = NULL;
-  regex_t regtest;
-  int err;
-  file = fopen("easyList.txt", "r");
-  if(file==NULL){
-    ThrowError("Error : Can't open rules file");
-  }
-  	char line[200]="";
-	char *line1=NULL;
-	line1=malloc(sizeof(char)*800);
-	while(fgets(line,200,file)!=NULL){ // parcours de toutes les lignes du fichier
-		line1=malloc(sizeof(char)*800);
-		strcpy(line1,line);
 
-		if(line[0]!='#' && line[0]!='|' && line[0]!='@'){ //Si c'est une règle qui concerne les url
-			line1 = strChange(line1,"^","[?/]");
-			line1 = strChange(line1,"*","[[:alnum:]]*");
-			//line1 = strChange(line1,"?","\\?");
-			//line1 = strChange(line1,"+","\\+");
-			//line1 = strChange(line1,".","\\.");
-			//line1 = strChange(line1,"{","\\{");
-			line1 = strChange(line1,"|","\\|");
-			//line1 = strChange(line1,"(","\\(");
-			//line1 = strChange(line1,")","\\)");
-			//line1 = strChange(line1,"}","\\}");
-      		err = regcomp(&regtest,line1,REG_NOSUB | REG_EXTENDED);
-      		//printf("\naddr qu'on test : %s",addr);
-      		//printf("\nligne qu'on test : %s",line1);
-      		if(err==0){
-
-      			int match;
-      			match = regexec(&regtest,addr,0,NULL,0);
-      			regfree(&regtest);
-				if(match==0 ){
-      				printf("\naddr qu'on test : %s",addr);
-      				printf("\nligne qu'on test : %s",line1);
-        			printf("\n on est sensé avoir blocage");
-					return(1);
-      			}
-      		}
-      		//line1=strtok(line,"^");
-			/* if(strstr(addr,line)!=NULL){ //Si l'adresse contiens l'élément présent sur la ligne
-         		printf("\nligne qu'on test : %s",line);
-         		printf("\n on est sensé avoir blocage");
-			 	return(1);
-			 }*/
-		}
-		free(&line1);
-	}
-	return(0);
-
-}
-
-
+//fonction de blocage par adresses
 int AddrBlock(char *addr){
   FILE* file = NULL;
   regex_t regtest;
@@ -225,79 +132,24 @@ int AddrBlock(char *addr){
 	char *buf=NULL;
 	while(fgets(line,200,file)!=NULL){ // parcours de toutes les lignes du fichier
 		if(line[0]!='#' && line[0]!='|' && line[0]!='@'){ //Si c'est une règle qui concerne les url
-			 if(strstr(addr,line)!=NULL){ //Si l'adresse contiens l'élément présent sur la ligne
+			 if(strstr(addr,line)!=NULL){ //Si l'adresse contient l'élément présent sur la ligne
          		printf("\nligne qu'on test addr : %s",line);
          		printf("\n on est sensé avoir blocage");
 			 	return(1);
 			 }
+		}else if(line[0]=='|' && line[1]!='|'){ //blocage par adresse exacte
+			if(strcmp(line,addr)==0){
+				return(1);
+			}
 		}
+		
 
 	}
 	return(0);
 
 } 
 
-int HostBlock2(char* host){
-  FILE* file = NULL;
-  regex_t regtest;
-  int err;
-  file = fopen("easyList.txt", "r");
-  if(file==NULL){
-    ThrowError("Error : Can't open rules file");
-  }
-  //printf("l'hote est :%s\n",host);
-  char line[200]="";
-  char *line1=NULL;
-  line1=malloc(sizeof(char)*800);
-  while(fgets(line,200,file)!=NULL){// parcours de toutes les lignes du fichier
-  	line1=malloc(sizeof(char)*800);
-    if (line[0]=='|' && line[1]=='|'){
-		strcpy(line1,line);
 
-      
-
-      line1=strtok(line1, "||");
-      line1=strtok(line1,"\n");
-	  line1 = strChange(line1,"^","[:/]");
-			line1 = strChange(line1,"*","[[:alnum:]]*");
-			//line1 = strChange(line1,"?","\\\\?");
-			line1 = strChange(line1,"+","\\+");
-			//line1 = strChange(line1,".","\\.");
-			line1 = strChange(line1,"{","\\{");
-			line1 = strChange(line1,"|","\\|");
-			line1=strChange(line1,"\\","\\\\")
-			//line1 = strChange(line1,"(","\\\\(");
-			//line1 = strChange(line1,")","\\\\)");
-			//line1 = strChange(line1,"}","\\\\}");
-			//printf("\nhost qu'on test : %s",host);
-      		//printf("\nligne qu'on test : %s",line1);
-      		err = regcomp(&regtest,line1,REG_NOSUB | REG_EXTENDED);
-      		if(err==0){
-      			//printf("l'expression est compilee");
-      			int match;
-      			match = regexec(&regtest,host,0,NULL,0);
-      			regfree(&regtest);
-      			if(match==0){
-      				printf("\nhost qu'on test : %s",host);
-      				printf("\nligne qu'on test : %s",line1);
-        			printf("\n on est sensé avoir blocage");
-					return(1);
-      			}
-      		}
-      //printf("\n2\n");
-      //printf("\n3\n");
-
-     /* if (strstr(host,buff)!=NULL){
-        printf("\nbuffer : %s\n",buff);
-
-        return(1);
-      }*/
-    }
-    free(&line1);
-  }
-  return(0); 
-    
-}
 
 int HostBlock(char* host){
   FILE* file = NULL;
@@ -309,7 +161,7 @@ int HostBlock(char* host){
   char line[200]="";
   char *buff=NULL;
   while(fgets(line,200,file)!=NULL){// parcours de toutes les lignes du fichier
-    if (line[0]=='|' && line[1]=='|'){
+    if (line[0]=='|' && line[1]=='|'){//Si c'est une règle qui concerne les nom d'hôtes
 
       buff=strtok(line, "||");
       buff=strtok(buff,"^");
@@ -326,53 +178,46 @@ int HostBlock(char* host){
 }
 
 int main(int argc, char *argv[]){
-  FILE* file = NULL;
 
-  file = fopen("easyList.txt", "r");
-  if(file==NULL){
-  	ThrowError("Error : Can't open rules file");
-  }
   struct sockaddr_in addr_client;
   struct addrinfo *res;
   struct addrinfo *p;
   struct sockaddr_in addr_server; 
   int sockProxy=0;
-  int sockClient=0; // create our 2 first socket correspond to browser and serveur side of our proxy
+  int sockClient=0; // création des deux sockets correspondants au navigateur et au proxy coté serveur
   int state=0; 
   int port;
-  char ipstring[INET_ADDRSTRLEN]; //ipstring = address IP
-  char* pute=NULL;
+  char ipstring[INET_ADDRSTRLEN]; //ipstring = addresse IP
+  char* tmpr=NULL;
 
   char ipver; 
-  pid_t pid; // n°pid for the fork
+  pid_t pid; // n°pid pour le fork
   void *addr=NULL;
   
  
-   // parameter of the port to indicates in the launch
-
   memset((char *) &addr_server, 0, sizeof(addr_server));
   memset((char *) &addr_client, 0, sizeof(addr_client));
 
-  port = atoi(argv[1]); //convert the port argument into int
-  checkArg(argc); // check the nb of arguments at exec
-  sockProxy=init(sockProxy,addr_server, port); // initialize proxy Socket
+  port = atoi(argv[1]); 
+  checkArg(argc);
+  sockProxy=init(sockProxy,addr_server, port); // initialisation du proxy Socket
   
   int clieServLen=sizeof(addr_client);
   
   while(1){
 
-    sockClient = accept(sockProxy,(struct sockaddr *) &addr_client, (socklen_t *)&clieServLen);  // function accept
+    sockClient = accept(sockProxy,(struct sockaddr *) &addr_client, (socklen_t *)&clieServLen);
     if( sockClient <0){
       ThrowError("Error : Can't accept client socket on proxy socket\n");
     }
     
-    pid=fork(); // fork use for the multiclient
+    pid=fork(); // utilisation du fork pour serveur multiclient
     if (pid==0){
       struct sockaddr_in *IP;
       struct addrinfo proxy_addr;
 
       int n=0;
-      int newsockfd=0; //create our two other socket which is server and client sight of the proxy sockets
+      int newsockfd=0; //création des deux autres sockets correspondant à celle du serveur et à celle du proxy côté navigateur
       int port =80;
       int sockfd=0;
       int path_length;
@@ -386,8 +231,8 @@ int main(int argc, char *argv[]){
       char protocol_name[10];
       char url_parser[300];
       char *tmp_buffer=NULL; 
-      char url[500]; //char that will contains the total url of the request
-      char *path=NULL;  //path of each url of a request
+      char url[500]; //url de la requête
+      char *path=NULL;  //chemin de chaque élément de la requête
       
 
 
@@ -396,14 +241,14 @@ int main(int argc, char *argv[]){
       memset((char *) send_buffer, 0, sizeof(send_buffer));
       
 
-      if ( (n= recv(sockClient,send_buffer,sizeof(send_buffer),0 ))<0 )  { //function recv that receives the buffer of the client by our proxy
+      if ( (n= recv(sockClient,send_buffer,sizeof(send_buffer),0 ))<0 )  {
         ThrowError("Error : Can't receive buffer from client\n");
       }
 
-    	sscanf(send_buffer,"%s %s %s",url_parser,web_url,protocol_name); //Parsing the request GET 
+    	sscanf(send_buffer,"%s %s %s",url_parser,web_url,protocol_name); //Parsing de la requête GET
     	strcpy(url,web_url); 
     
-    	if(((strncmp(protocol_name,"HTTP/1.1",8)==0)||(strncmp(protocol_name,"HTTP/1.0",8)==0))&&((strncmp(web_url,"http://",7)==0))) //Treats the request GET and POST in IP or ipv6
+    	if(((strncmp(protocol_name,"HTTP/1.1",8)==0)||(strncmp(protocol_name,"HTTP/1.0",8)==0))&&((strncmp(web_url,"http://",7)==0))) //traitement de la requête GET
     	{
 		      port=80;
 		      strcpy(url_parser,web_url);
@@ -415,7 +260,7 @@ int main(int argc, char *argv[]){
 		      strcat(url_parser,"::");
 		      tmp=strtok(NULL,"::");
 
-		      if(tmp!=NULL) { // We need to add a '/' before our path because the parse of the request delete it
+		      if(tmp!=NULL) { // on doit rajouter un "/" car le parse de la requête le supprime.
 		        path_length = strlen(tmp) + 2;
 		      	path = (char*)malloc(path_length * sizeof(char));
 		      	*path = '/';
@@ -440,44 +285,39 @@ int main(int argc, char *argv[]){
           IP-> sin_port = htons(HTTP_PORT); //port HTTP
         }
         addr = &(IP->sin_addr);
-        inet_ntop(p->ai_family, addr, ipstring, INET_ADDRSTRLEN); // transform the ip adress into char
+        inet_ntop(p->ai_family, addr, ipstring, INET_ADDRSTRLEN); // transforme l'adresse IP en char
         
       
       
       p = p->ai_next;
     	}
 
-        if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) <0) { //create our socket for IP
+        if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) <0) { 
           ThrowError("Error : Can't create proxy socket for IP\n");
         }
-        if((newsockfd=connect(sockfd,(struct sockaddr*)IP,sizeof(struct sockaddr)))<0){ //  connect between client sight and server socket
+        if((newsockfd=connect(sockfd,(struct sockaddr*)IP,sizeof(struct sockaddr)))<0){
           ThrowError("Error : Can't connect client socket to server socket\n");
         }
 
-        if((tmp!=NULL) || (port ==80)){  //If we are in HTTP
+        if((tmp!=NULL) || (port ==80)){  //Si cc'est une page HTTP
 
-          if(path==NULL){  // If the path is null the buffer still anyway want to have a '/'
+          if(path==NULL){
             path="/";
           }
-        	//printf("path : %s\n",path);
-        	//printf("url : %s\n",url);
 
-          tmp_buffer = strChange(send_buffer,url, path); // replace the url send by the path
+          tmp_buffer = strChange(send_buffer,url, path);
 
-          client_buffer = strChange(tmp_buffer, "keep-alive", "close"); // replace keep alive by close
+          client_buffer = strChange(tmp_buffer, "keep-alive", "close"); // remplace keep alive par close dans le buffer
           int buff_len = strlen(client_buffer);
-          pute = (char*)malloc(buff_len * sizeof(char));
-          strcpy(pute,client_buffer);
+          tmpr = (char*)malloc(buff_len * sizeof(char));
+          strcpy(tmpr,client_buffer);
 
-          host=strtok(pute,"User-Agent: ");
+          host=strtok(tmpr,"User-Agent: ");
           host= strtok(NULL,"\n");
           host= strtok(NULL,"\n");
           host= strtok(host," :");
           host = strtok(NULL," :");
-          //strcat(client_buffer, "Connection: close");  // prepare our buffer to be send
-          //printf("%s\n",client_buffer );
-          //printf("url : %s",url);
-          if(AddrBlock2(url)==0 && HostBlock2(host)==0){
+          if(AddrBlock(url)==0 && HostBlock(host)==0){
             sendToBrowser(sockfd,client_buffer,sockClient,n);
           }else{
             printf("\n\n----------------------------------------------------------------------------------\n\n");
@@ -487,7 +327,7 @@ int main(int argc, char *argv[]){
         }
 	    }
 	    close(sockClient);
-	    close(sockfd);  //close our sockets
+	    close(sockfd);  //fermeture des sockets
 	    close(sockProxy);
 	    _exit(0);
 	} else {
