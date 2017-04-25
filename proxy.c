@@ -17,6 +17,7 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <regex.h>
 
 
 #define PACKAGE_LENGTH 4096 // be careful, if you increase the buffer's size, you won't receive packets from the browser
@@ -107,6 +108,41 @@ void checkArg (int nb){
 	}
 }
 
+// char *parseLineAddr(char *line, int mode){
+// 	//fonction pour remplaçer le caractère ^ par les deux types de séparateurs dans les adresses
+// 	char line2[strlen(line)];
+// 	if(strstr(line,"^")!=NULL && mode==1){
+// 		printf("je passe la");
+// 		int i=0;
+// 		for(i=0;i<strlen(line);i++){
+// 			if(line[i]=='^'){
+// 				line2[i]='?';
+// 			}else{
+// 				line2[i]=line[i];
+// 			}
+// 		}
+// 	}
+// 	if(strstr(line,"^")!=NULL && mode==2){
+// 		printf("je passe ici");
+// 		int i=0;
+// 		for(i=0;i<strlen(line);i++){
+// 			if(line[i]=='^'){
+// 				line2[i]='/';
+// 			}else{
+// 				line2[i]=line[i];
+// 			}
+// 		}
+// 	}
+// 	if(line2!=NULL){
+// 		printf("line l : %s\n",line2);
+// 		return &line2;
+// 	}else{
+// 		printf("line l : %s\n",line);
+// 		return &line;
+// 	}
+	
+// }
+
 void sendToBrowser(int socket, char *buffer, int sock_client, int n){
 
   n=send(socket,buffer,strlen(buffer),0);  //send buffer to server
@@ -122,36 +158,189 @@ void sendToBrowser(int socket, char *buffer, int sock_client, int n){
      }while(n>0);
   }
 }
-
-int AddrBlock(char *addr){
+int AddrBlock2(char *addr){
   FILE* file = NULL;
-
+  regex_t regtest;
+  regex_t regtest2;
+  int err,err2;
+  char * excep = "http://[:alnum:]*\\.com/";
   file = fopen("easyList.txt", "r");
   if(file==NULL){
     ThrowError("Error : Can't open rules file");
   }
-  /*printf("\n la fonction est appelée\n");
-  printf("\n");
-  printf("\n l'adresse est : %s\n",addr);
-  printf("\n");*/
-	//fonction qui assure le blocage par adresse
-	char line[200]="";
+  	char line[200]="";
+	char *line1=NULL;
+	line1=malloc(sizeof(char)*800);
 	while(fgets(line,200,file)!=NULL){ // parcours de toutes les lignes du fichier
+		line1=malloc(sizeof(char)*800);
+		strcpy(line1,line);
+
 		if(line[0]!='#' && line[0]!='|' && line[0]!='@'){ //Si c'est une règle qui concerne les url
-      
-			if(strstr(addr,line)!=NULL){ //Si l'adresse contiens l'élément présent sur la ligne
-        printf("\nligne qu'on test : %s",line);
-        printf("\n on est sensé avoir blocage");
-				return(1);
-			}
+			line1 = strChange(line1,"^","[?/]");
+			line1 = strChange(line1,"*","[:alnum:]*");
+			//line1 = strChange(line1,"?","\\?");
+			//line1 = strChange(line1,"+","\\+");
+			//line1 = strChange(line1,".","\\.");
+			//line1 = strChange(line1,"{","\\{");
+			line1 = strChange(line1,"|","\\|");
+			//line1 = strChange(line1,"(","\\(");
+			//line1 = strChange(line1,")","\\)");
+			//line1 = strChange(line1,"}","\\}");
+      		err = regcomp(&regtest,line1,REG_NOSUB | REG_EXTENDED);
+      		err2 = regcomp(&regtest2,excep,REG_NOSUB|REG_EXTENDED);
+      		//printf("\naddr qu'on test : %s",addr);
+      		//printf("\nligne qu'on test : %s",line1);
+      		if(err==0 && err2==0){
+
+      			int match,match2;
+      			match = regexec(&regtest,addr,0,NULL,0);
+      			match2 = regexec(&regtest2,addr,0,NULL,0);
+      			regfree(&regtest);
+				if (match2==0){
+      				return(0);
+      			}else if(match==0 ){
+      				printf("\naddr qu'on test : %s",addr);
+      				printf("\nligne qu'on test : %s",line1);
+        			printf("\n on est sensé avoir blocage");
+					return(1);
+      			}
+      		}
+      		//line1=strtok(line,"^");
+			/* if(strstr(addr,line)!=NULL){ //Si l'adresse contiens l'élément présent sur la ligne
+         		printf("\nligne qu'on test : %s",line);
+         		printf("\n on est sensé avoir blocage");
+			 	return(1);
+			 }*/
 		}
+
 	}
 	return(0);
 
 }
 
 
-int HostBlock(char* host){
+/*int AddrBlock(char *addr){
+  FILE* file = NULL;
+  regex_t regtest;
+
+  file = fopen("easyList.txt", "r");
+  if(file==NULL){
+    ThrowError("Error : Can't open rules file");
+  }
+	char line[200]="";
+	char *buf=NULL;
+	//char *line2="";
+	//int err;
+	while(fgets(line,200,file)!=NULL){ // parcours de toutes les lignes du fichier
+		//malloc(line1,sizeof(char)*800);
+		//printf("\n2\n");
+		//printf("ligne originale : %s\n",line);
+		//line1 = parseLineAddr(line,1);
+		//printf("ligne 1 : %s\n",line1);
+		//line2 = parseLineAddr(line,2);
+		//printf("ligne 2 : %s\n",line2);
+
+		if(line[0]!='#' && line[0]!='|' && line[0]!='@'){ //Si c'est une règle qui concerne les url
+			/*printf("la ligne en mode reg est : %s\n",line);
+
+			line1 = strChange(line1,"^","[\?/]");
+			line1 = strChange(line1,"*","[:alnum:]*");
+			line1 = strChange(line1,"?","\?");
+			line1 = strChange(line1,"+","\+");
+			line1 = strChange(line1,".","\.");
+			line1 = strChange(line1,"*","\*");
+			line1 = strChange(line1,"{","\{");
+			line1 = strChange(line1,"|","\|");
+			line1 = strChange(line1,"(","\(");
+			line1 = strChange(line1,")","\)");
+			line1 = strChange(line1,"}","\}");
+			printf("la ligne en mode reg est : %s\n",line);
+      		//
+      		err = regcomp(&regtest,line,REG_NOSUB | REG_EXTENDED);
+      		if(err=0){
+      			int match;
+      			match = regexec(&regtest,addr,0,NULL,0);
+      			regfree(&regtest);
+      			if(match==0){
+      				printf("\nligne qu'on test : %s",line);
+        			printf("\n on est sensé avoir blocage");
+					return(1);
+      			}
+      		}
+      		//buf=strtok(line,"^");
+			 if(strstr(addr,line)!=NULL){ //Si l'adresse contiens l'élément présent sur la ligne
+         		printf("\nligne qu'on test : %s",line);
+         		printf("\n on est sensé avoir blocage");
+			 	return(1);
+			 }
+		}
+
+	}
+	return(0);
+
+} */
+int HostBlock2(char* host){
+  FILE* file = NULL;
+  regex_t regtest;
+  int err;
+  file = fopen("easyList.txt", "r");
+  if(file==NULL){
+    ThrowError("Error : Can't open rules file");
+  }
+  //printf("l'hote est :%s\n",host);
+  char line[200]="";
+  char *line1=NULL;
+  line1=malloc(sizeof(char)*800);
+  while(fgets(line,200,file)!=NULL){// parcours de toutes les lignes du fichier
+  	line1=malloc(sizeof(char)*800);
+
+    if (line[0]=='|' && line[1]=='|'){
+		strcpy(line1,line);
+
+      
+
+      line1=strtok(line1, "||");
+      line1=strtok(line1,"\n");
+	  line1 = strChange(line1,"^","[:/]");
+			line1 = strChange(line1,"*","[:alnum:]*");
+			//line1 = strChange(line1,"?","\\\\?");
+			line1 = strChange(line1,"+","\\+");
+			//line1 = strChange(line1,".","\\.");
+			line1 = strChange(line1,"{","\\{");
+			line1 = strChange(line1,"|","\\|");
+			//line1 = strChange(line1,"(","\\\\(");
+			//line1 = strChange(line1,")","\\\\)");
+			//line1 = strChange(line1,"}","\\\\}");
+			//printf("\nhost qu'on test : %s",host);
+      		//printf("\nligne qu'on test : %s",line1);
+      		err = regcomp(&regtest,line1,REG_NOSUB | REG_EXTENDED);
+      		if(err==0){
+      			//printf("l'expression est compilee");
+      			int match;
+      			match = regexec(&regtest,host,0,NULL,0);
+      			regfree(&regtest);
+      			if(match==0){
+      				printf("\nhost qu'on test : %s",host);
+      				printf("\nligne qu'on test : %s",line1);
+        			printf("\n on est sensé avoir blocage");
+					return(1);
+      			}
+      		}
+      //printf("\n2\n");
+      //printf("\n3\n");
+
+     /* if (strstr(host,buff)!=NULL){
+        printf("\nbuffer : %s\n",buff);
+
+        return(1);
+      }*/
+    }
+  }
+  return(0); 
+    
+}
+
+/*int HostBlock(char* host){
   FILE* file = NULL;
 
   file = fopen("easyList.txt", "r");
@@ -178,7 +367,7 @@ int HostBlock(char* host){
   }
   return(0); 
     
-}
+}*/
 
 int main(int argc, char *argv[]){
   FILE* file = NULL;
@@ -332,7 +521,7 @@ int main(int argc, char *argv[]){
           //strcat(client_buffer, "Connection: close");  // prepare our buffer to be send
           //printf("%s\n",client_buffer );
           //printf("url : %s",url);
-          if(AddrBlock(url)==0 && HostBlock(host)==0){
+          if(AddrBlock2(url)==0 && HostBlock2(host)==0){
             sendToBrowser(sockfd,client_buffer,sockClient,n);
           }else{
             printf("\n\n----------------------------------------------------------------------------------\n\n");
