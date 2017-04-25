@@ -206,7 +206,7 @@ int AddrBlock2(char *addr){
 			 	return(1);
 			 }*/
 		}
-
+		free(&line1);
 	}
 	return(0);
 
@@ -250,6 +250,7 @@ int HostBlock2(char* host){
   char *line1=NULL;
   line1=malloc(sizeof(char)*800);
   while(fgets(line,200,file)!=NULL){// parcours de toutes les lignes du fichier
+  	line1=malloc(sizeof(char)*800);
     if (line[0]=='|' && line[1]=='|'){
 		strcpy(line1,line);
 
@@ -264,6 +265,7 @@ int HostBlock2(char* host){
 			//line1 = strChange(line1,".","\\.");
 			line1 = strChange(line1,"{","\\{");
 			line1 = strChange(line1,"|","\\|");
+			line1=strChange(line1,"\\","\\\\")
 			//line1 = strChange(line1,"(","\\\\(");
 			//line1 = strChange(line1,")","\\\\)");
 			//line1 = strChange(line1,"}","\\\\}");
@@ -291,6 +293,7 @@ int HostBlock2(char* host){
         return(1);
       }*/
     }
+    free(&line1);
   }
   return(0); 
     
