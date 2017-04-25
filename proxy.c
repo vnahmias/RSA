@@ -161,9 +161,7 @@ void sendToBrowser(int socket, char *buffer, int sock_client, int n){
 int AddrBlock2(char *addr){
   FILE* file = NULL;
   regex_t regtest;
-  regex_t regtest2;
-  int err,err2;
-  char * excep = "http://[:alnum:]*\\.com/";
+  int err;
   file = fopen("easyList.txt", "r");
   if(file==NULL){
     ThrowError("Error : Can't open rules file");
@@ -177,7 +175,7 @@ int AddrBlock2(char *addr){
 
 		if(line[0]!='#' && line[0]!='|' && line[0]!='@'){ //Si c'est une règle qui concerne les url
 			line1 = strChange(line1,"^","[?/]");
-			line1 = strChange(line1,"*","[:alnum:]*");
+			line1 = strChange(line1,"*","[[:alnum:]]*");
 			//line1 = strChange(line1,"?","\\?");
 			//line1 = strChange(line1,"+","\\+");
 			//line1 = strChange(line1,".","\\.");
@@ -187,18 +185,14 @@ int AddrBlock2(char *addr){
 			//line1 = strChange(line1,")","\\)");
 			//line1 = strChange(line1,"}","\\}");
       		err = regcomp(&regtest,line1,REG_NOSUB | REG_EXTENDED);
-      		err2 = regcomp(&regtest2,excep,REG_NOSUB|REG_EXTENDED);
       		//printf("\naddr qu'on test : %s",addr);
       		//printf("\nligne qu'on test : %s",line1);
-      		if(err==0 && err2==0){
+      		if(err==0){
 
-      			int match,match2;
+      			int match;
       			match = regexec(&regtest,addr,0,NULL,0);
-      			match2 = regexec(&regtest2,addr,0,NULL,0);
       			regfree(&regtest);
-				if (match2==0){
-      				return(0);
-      			}else if(match==0 ){
+				if(match==0 ){
       				printf("\naddr qu'on test : %s",addr);
       				printf("\nligne qu'on test : %s",line1);
         			printf("\n on est sensé avoir blocage");
@@ -219,7 +213,7 @@ int AddrBlock2(char *addr){
 }
 
 
-/*int AddrBlock(char *addr){
+int AddrBlock(char *addr){
   FILE* file = NULL;
   regex_t regtest;
 
@@ -229,47 +223,10 @@ int AddrBlock2(char *addr){
   }
 	char line[200]="";
 	char *buf=NULL;
-	//char *line2="";
-	//int err;
 	while(fgets(line,200,file)!=NULL){ // parcours de toutes les lignes du fichier
-		//malloc(line1,sizeof(char)*800);
-		//printf("\n2\n");
-		//printf("ligne originale : %s\n",line);
-		//line1 = parseLineAddr(line,1);
-		//printf("ligne 1 : %s\n",line1);
-		//line2 = parseLineAddr(line,2);
-		//printf("ligne 2 : %s\n",line2);
-
 		if(line[0]!='#' && line[0]!='|' && line[0]!='@'){ //Si c'est une règle qui concerne les url
-			/*printf("la ligne en mode reg est : %s\n",line);
-
-			line1 = strChange(line1,"^","[\?/]");
-			line1 = strChange(line1,"*","[:alnum:]*");
-			line1 = strChange(line1,"?","\?");
-			line1 = strChange(line1,"+","\+");
-			line1 = strChange(line1,".","\.");
-			line1 = strChange(line1,"*","\*");
-			line1 = strChange(line1,"{","\{");
-			line1 = strChange(line1,"|","\|");
-			line1 = strChange(line1,"(","\(");
-			line1 = strChange(line1,")","\)");
-			line1 = strChange(line1,"}","\}");
-			printf("la ligne en mode reg est : %s\n",line);
-      		//
-      		err = regcomp(&regtest,line,REG_NOSUB | REG_EXTENDED);
-      		if(err=0){
-      			int match;
-      			match = regexec(&regtest,addr,0,NULL,0);
-      			regfree(&regtest);
-      			if(match==0){
-      				printf("\nligne qu'on test : %s",line);
-        			printf("\n on est sensé avoir blocage");
-					return(1);
-      			}
-      		}
-      		//buf=strtok(line,"^");
 			 if(strstr(addr,line)!=NULL){ //Si l'adresse contiens l'élément présent sur la ligne
-         		printf("\nligne qu'on test : %s",line);
+         		printf("\nligne qu'on test addr : %s",line);
          		printf("\n on est sensé avoir blocage");
 			 	return(1);
 			 }
@@ -278,7 +235,8 @@ int AddrBlock2(char *addr){
 	}
 	return(0);
 
-} */
+} 
+
 int HostBlock2(char* host){
   FILE* file = NULL;
   regex_t regtest;
@@ -292,8 +250,6 @@ int HostBlock2(char* host){
   char *line1=NULL;
   line1=malloc(sizeof(char)*800);
   while(fgets(line,200,file)!=NULL){// parcours de toutes les lignes du fichier
-  	line1=malloc(sizeof(char)*800);
-
     if (line[0]=='|' && line[1]=='|'){
 		strcpy(line1,line);
 
@@ -302,7 +258,7 @@ int HostBlock2(char* host){
       line1=strtok(line1, "||");
       line1=strtok(line1,"\n");
 	  line1 = strChange(line1,"^","[:/]");
-			line1 = strChange(line1,"*","[:alnum:]*");
+			line1 = strChange(line1,"*","[[:alnum:]]*");
 			//line1 = strChange(line1,"?","\\\\?");
 			line1 = strChange(line1,"+","\\+");
 			//line1 = strChange(line1,".","\\.");
@@ -340,14 +296,13 @@ int HostBlock2(char* host){
     
 }
 
-/*int HostBlock(char* host){
+int HostBlock(char* host){
   FILE* file = NULL;
 
   file = fopen("easyList.txt", "r");
   if(file==NULL){
     ThrowError("Error : Can't open rules file");
-  }
-  //printf("l'hote est :%s\n",host);
+}
   char line[200]="";
   char *buff=NULL;
   while(fgets(line,200,file)!=NULL){// parcours de toutes les lignes du fichier
@@ -355,8 +310,6 @@ int HostBlock2(char* host){
 
       buff=strtok(line, "||");
       buff=strtok(buff,"^");
-      //printf("\n2\n");
-      //printf("\n3\n");
 
       if (strstr(host,buff)!=NULL){
         printf("\nbuffer : %s\n",buff);
@@ -367,7 +320,7 @@ int HostBlock2(char* host){
   }
   return(0); 
     
-}*/
+}
 
 int main(int argc, char *argv[]){
   FILE* file = NULL;
